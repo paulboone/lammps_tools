@@ -31,9 +31,13 @@ def thermo_from_lammps_log(f, last_timestep=-1):
                 return cols, data
 
 
+def col_from_calc(calc):
+    return "VTPDE".index(calc) + 1
 
 
-filenames = sys.argv[1:]
+
+calcs = sys.argv[1] # VTPDE
+filenames = sys.argv[2:]
 cols = []
 data = []
 last_timestep = -1
@@ -51,56 +55,80 @@ for filename in filenames:
 
 data = np.array(data)
 
-# solve y = mx + c
-
-
-
-def calc_stats(data, rowstart, rowstop, total_range):
+def calc_stats(data, col, rowstart, rowstop, total_range):
     x = data[:,0][rowstart:rowstop]
-    y = data[:,1][rowstart:rowstop]
+    y = data[:,col][rowstart:rowstop]
     a = np.vstack([x, np.ones(len(x))]).T
     slope, c = np.linalg.lstsq(a, y)[0]
 
+    average = np.average(y)
+
     drange = max(y) - min(y)
-    minmax = "%s-%s = %s" % (min(y), max(y), drange)
+    minmax = "%s to %s = %s" % (min(y), max(y), drange)
 
     slope_per_period = slope * nrows * timesteps_per_row
-    slope_range_per_mille = slope_per_period * 1000 / total_range
+    slope_per_range_perc = slope_per_period * 100 / total_range
+    slope_per_avg_perc =   slope_per_period * 100 / average
 
-    return ["%s-%s" % (rowstart, rowstop), minmax, slope, slope_per_period,
-                    "%+4.1f ‰" % slope_range_per_mille
-                     ]
+    return [minmax, average, slope, slope_per_period, "%+4.2f%%" % slope_per_range_perc, "%+4.2f%%" % slope_per_avg_perc]
 
 print()
 timesteps_per_row = 10000
 nrows = 200
-total_range = max(data[:,1]) - min(data[:,1])
 
 print("Timesteps Per Row: %s" % timesteps_per_row)
 print("Number rows in a period: %s" % nrows)
 print("Total timesteps in a period (Ts_P): %s" % (nrows * timesteps_per_row))
 print()
-print("Total Range = %s" % total_range)
+
+print("NOTE: Total Range skips the first row due to potentially high values from packing.")
+total_range = [max(data[1:,col_from_calc(calc)]) - min(data[1:,col_from_calc(calc)]) for calc in calcs]
+
+print("Total Range (TR):")
+for i, calc in enumerate(calcs):
+     print("- %s: %s" % (calc, total_range[i]))
 print()
 
-results = []
-for i in range(0,int(len(data)/nrows)):
-    rowstart = i * nrows
-    rowstop = (i + 1) * nrows
-    results.append(calc_stats(data, rowstart, rowstop, total_range))
 
 print("PER PERIOD")
-print(tabulate(results, ["Rows", "Range", "Slope", "∆ (Ts_P)", "(Slope / TotRange) * Ts_P"], floatfmt="+.2E", stralign='right'))
-print()
-
 results = []
 for i in range(0,int(len(data)/nrows)):
-    rowstart = i * nrows
-    rowstop = len(data)
-    results.append(calc_stats(data, rowstart, rowstop, total_range))
+    rowstart = i * nrows + 1
+    rowstop = (i + 1) * nrows + 1
+    calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
+    for i, calc in enumerate(calcs):
+        calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
+    results.append(calc_row)
+
+headers = ["Rows"]
+for calc in calcs:
+    headers += ["%s Range" % calc, "Average", "Slope (m)", "m*Ts_P", "m*Ts_P/TR", "m*Ts_P/avg", '||']
+
+print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
+print()
+
 
 print("FROM PERIOD START TO LAST DATA POINT")
-print(tabulate(results, ["Rows", "Range", "Slope", "∆ (Ts_P)", "(Slope / TotRange) * Ts_P"], floatfmt="+.2E", stralign='right'))
+results = []
+for i in range(0,int(len(data)/nrows)):
+    rowstart = i * nrows + 1
+    rowstop = len(data)
+    calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
+    for i, calc in enumerate(calcs):
+        calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
+    results.append(calc_row)
+
+print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
+print()
+
+
+# for i in range(0,int(len(data)/nrows)):
+#     rowstart = i * nrows
+#     rowstop = len(data) - 1
+#     results.append(calc_stats(data, rowstart, rowstop, total_range))
+#
+
+# print(tabulate(results, ["Rows", "Range", "Slope", "∆ (Ts_P)", "∆ / TotRange"], floatfmt="+.2E", stralign='right'))
 
 
 # results = []
