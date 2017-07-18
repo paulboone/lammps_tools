@@ -1,4 +1,4 @@
-#!/bin/env/python3
+#!/usr/local/bin/python3
 
 import sys
 
@@ -29,6 +29,7 @@ with open(filename, 'r') as f:
 if temps:
     timesteps.append(timestep)
     temps_by_timesteps.append(temps)
+    print(temps)
 
 
 
