@@ -57,7 +57,7 @@ for filename in filenames:
 
 data = np.array(data)
 
-def calc_stats(data, col, rowstart, rowstop, total_range):
+def calc_stats(data, col, rowstart, rowstop, total_range, nrows, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
     y = data[:,col][rowstart:rowstop]
     a = np.vstack([x, np.ones(len(x))]).T
@@ -74,6 +74,14 @@ def calc_stats(data, col, rowstart, rowstop, total_range):
     slope_per_avg_perc =   slope_per_period * 100 / average
 
     return [minmax, average, slope, slope_per_period, "%+4.2f%%" % slope_per_range_perc, "%+4.2f%%" % slope_per_avg_perc]
+
+
+def calc_row(data, calcs, rowstart, rowstop, total_range, nrows, timesteps_per_row):
+    calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
+    for i, calc in enumerate(calcs):
+        calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i], nrows, timesteps_per_row) + ['||']
+    return calc_row
+
 
 print()
 timesteps_per_row = 10000
@@ -95,13 +103,19 @@ print()
 
 print("PER PERIOD")
 results = []
+
+if startdata > 0:
+    rowstart = 1
+    rowstop = 1 + startdata
+    row = calc_row(data, calcs, rowstart, rowstop, total_range, startdata, timesteps_per_row)
+    row[0] += "*"
+    results.append(row)
+
+
 for i in range(0,int((len(data) - startdata)/nrows)):
     rowstart = i * nrows + 1 + startdata
     rowstop = (i + 1) * nrows + 1 + startdata
-    calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
-    for i, calc in enumerate(calcs):
-        calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
-    results.append(calc_row)
+    results.append(calc_row(data, calcs, rowstart, rowstop, total_range, nrows, timesteps_per_row))
 
 headers = ["Rows"]
 for calc in calcs:
