@@ -37,7 +37,9 @@ def col_from_calc(calc):
 
 
 calcs = sys.argv[1] # VTPDE
-filenames = sys.argv[2:]
+startdata = int(sys.argv[2])
+nrows = int(sys.argv[3])
+filenames = sys.argv[4:]
 cols = []
 data = []
 last_timestep = -1
@@ -59,6 +61,7 @@ def calc_stats(data, col, rowstart, rowstop, total_range):
     x = data[:,0][rowstart:rowstop]
     y = data[:,col][rowstart:rowstop]
     a = np.vstack([x, np.ones(len(x))]).T
+    # print(a,y)
     slope, c = np.linalg.lstsq(a, y)[0]
 
     average = np.average(y)
@@ -74,7 +77,7 @@ def calc_stats(data, col, rowstart, rowstop, total_range):
 
 print()
 timesteps_per_row = 10000
-nrows = 200
+# nrows = 200
 
 print("Timesteps Per Row: %s" % timesteps_per_row)
 print("Number rows in a period: %s" % nrows)
@@ -92,9 +95,9 @@ print()
 
 print("PER PERIOD")
 results = []
-for i in range(0,int(len(data)/nrows)):
-    rowstart = i * nrows + 1
-    rowstop = (i + 1) * nrows + 1
+for i in range(0,int((len(data) - startdata)/nrows)):
+    rowstart = i * nrows + 1 + startdata
+    rowstop = (i + 1) * nrows + 1 + startdata
     calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
     for i, calc in enumerate(calcs):
         calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
@@ -108,18 +111,18 @@ print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
 print()
 
 
-print("FROM PERIOD START TO LAST DATA POINT")
-results = []
-for i in range(0,int(len(data)/nrows)):
-    rowstart = i * nrows + 1
-    rowstop = len(data)
-    calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
-    for i, calc in enumerate(calcs):
-        calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
-    results.append(calc_row)
-
-print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
-print()
+# print("FROM PERIOD START TO LAST DATA POINT")
+# results = []
+# for i in range(0,int(len(data)/nrows)):
+#     rowstart = i * nrows + 1
+#     rowstop = len(data)
+#     calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
+#     for i, calc in enumerate(calcs):
+#         calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
+#     results.append(calc_row)
+#
+# print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
+# print()
 
 
 # for i in range(0,int(len(data)/nrows)):
