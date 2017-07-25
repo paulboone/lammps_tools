@@ -2,6 +2,8 @@
 
 import sys
 
+from matplotlib import pyplot as plt
+
 filename = sys.argv[1]
 
 
@@ -36,26 +38,32 @@ timesteps = timesteps[00:100]
 temps_by_timesteps = temps_by_timesteps[00:100]
 y_range=(0.3,0.7)
 x_range = (1,28)
-# all_temps = [t for temps in temps_by_timesteps for t in temps]
-# y_range = [min(all_temps), max(all_temps)]
 
 
-from bokeh.plotting import figure, show, output_file
+alpha_min = 0.10
+alpha_max = 0.50
 
-alpha_min = 0.25
-alpha_max = 0.75
 
-p = figure(title="Temps across Z", plot_width = 600, plot_height=400, x_range=x_range, y_range=y_range)
+all_temps = [float(t) for temps in temps_by_timesteps for t in temps]
+y_range = [min(all_temps), max(all_temps)]
+print("y_range = %s" % y_range)
+
+fig = plt.figure(figsize=(8.0,6.0))
+ax = fig.add_subplot(111)
+
+ax.set_title("by Z")
+ax.set_ylim(y_range)
+ax.set_xlim(x_range)
+
 z_range = range(1, len(temps) + 1)
 for i, ts in enumerate(timesteps):
     if i == len(timesteps) - 1:
         alpha = 1.00
-        width = 2
+        width = 4
     else:
         alpha = alpha_min + i*(alpha_max - alpha_min)/len(timesteps)
-        width = 1
+        width = 0.5
 
-    p.line(z_range, temps_by_timesteps[i], line_alpha=alpha, line_width=width) # legend="y=sqrt(x)", line_color="tomato", line_dash="dotdash"
+    ax.plot(z_range, temps_by_timesteps[i], 'b', alpha=alpha, lw=width)
 
-output_file(filename + ".html")
-show(p)
+fig.savefig(filename + ".png", dpi=144)
