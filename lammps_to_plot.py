@@ -48,6 +48,9 @@ else:
     row_start = 0
     row_stop = len(rows)
 
+rows=rows[row_start:row_stop]
+values_by_rows=values_by_rows[row_start:row_stop]
+
 x_range = (1, int(num_chunks))
 if args.xrange:
     x_range = [float(xr) for xr in args.xrange]
@@ -81,10 +84,10 @@ for plot_index in range(1, num_plots + 1):
     ax.set_xlim(x_range)
 
 
-    grow_start = row_start + plot_every * (plot_index - 1)
-    grow_stop = min(row_start + plot_every * (plot_index), row_stop)
+    grow_start = plot_every * (plot_index - 1)
+    grow_stop = min(plot_every * (plot_index), len(rows))
 
-    ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, grow_start, grow_stop))
+    ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, grow_start + row_start, grow_stop + row_start))
 
     for i in range(grow_start, grow_stop):
         if i == grow_stop - 1:
