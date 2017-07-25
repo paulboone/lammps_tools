@@ -12,7 +12,7 @@ parser.add_argument('filepath', help="Path to LAMMPS chunks output file")
 parser.add_argument("--ylabel", "--yl", default="Unspecified Varname", help="variable measured in the LAMMPS file")
 parser.add_argument("--xlabel", "--xl", default="chunk", help="chunk dimension")
 parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop rows. Defaults to plotting all rows.")
-parser.add_argument("--avg-every", "-a", default=None, help="Number of rows to average before plotting.")
+parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to average before plotting.")
 parser.add_argument("--plot-every", "-p", default=None, help="Number of rows per plot. Must be a multiple of avg-every, if that is used.")
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
@@ -58,7 +58,6 @@ else:
 num_chunks = int(num_chunks)
 avg_every = int(args.avg_every)
 
-
 if args.rows:
     row_start = int(args.rows[0])
     row_stop = int(args.rows[1])
@@ -69,7 +68,7 @@ else:
 rows=rows[row_start:row_stop]
 values_by_rows=values_by_rows[row_start:row_stop]
 
-if args.avg_every:
+if avg_every > 1:
     rows = rows[avg_every-1::avg_every]
     values_by_rows=values_by_rows.reshape([len(rows), avg_every, num_chunks]).mean(1)
 
