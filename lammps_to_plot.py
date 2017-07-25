@@ -9,14 +9,13 @@ parser = argparse.ArgumentParser("./lammps_to_plot.py") #help='Process LAMMPS ch
 parser.add_argument('filepath', help="Path to LAMMPS chunks output file")
 parser.add_argument("--ylabel", "--yl", default="Unspecified Varname", help="variable measured in the LAMMPS file")
 parser.add_argument("--xlabel", "--xl", default="chunk", help="chunk dimension")
-parser.add_argument("--timesteps", "--ts", nargs=2, default=None, help="Start and stop timesteps. Defaults to plotting all.")
-parser.add_argument("--timestep_size", "--tss", default=1, help="Size of timestep for proper labeling.")
+parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop rows. Defaults to plotting all rows.")
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
 args = parser.parse_args()
 
-timesteps = []
-values_by_timesteps = []
+rows = []
+values_by_rows = []
 values = []
 
 with open(args.filepath, 'r') as f:
@@ -25,8 +24,8 @@ with open(args.filepath, 'r') as f:
             pass
         elif line[0].isdigit():
             if values:
-                timesteps.append(timestep)
-                values_by_timesteps.append(values)
+                rows.append(timestep)
+                values_by_rows.append(values)
                 values = []
             timestep, num_chunks, _ = line.split()
 
@@ -37,20 +36,20 @@ with open(args.filepath, 'r') as f:
             values.append(temp)
 
 if values:
-    timesteps.append(timestep)
-    values_by_timesteps.append(values)
+    rows.append(timestep)
+    values_by_rows.append(values)
 
-if args.timesteps:
-    ts_start = int(args.timesteps[0])
-    ts_stop = int(args.timesteps[1])
-    ts_size = int(args.timestep_size)
+if args.rows:
+    row_start = int(args.rows[0])
+    row_stop = int(args.rows[1])
+    # ts_size = int(args.timestep_size)
 
-    timesteps = timesteps[ts_start:ts_stop]
-    values_by_timesteps = values_by_timesteps[ts_start:ts_stop]
+    rows = rows[row_start:row_stop]
+    values_by_rows = values_by_rows[row_start:row_stop]
 else:
-    ts_start = 0
-    ts_stop = len(timesteps)
-    ts_size = 1
+    row_start = 0
+    row_stop = len(rows)
+    # ts_size = 1
 
 x_range = (1, int(num_chunks))
 if args.xrange:
@@ -60,7 +59,7 @@ if args.xrange:
 if args.yrange:
     y_range = [float(yr) for yr in args.yrange]
 else:
-    all_values = [float(t) for values in values_by_timesteps for t in values]
+    all_values = [float(t) for values in values_by_rows for t in values]
     y_range = [min(all_values), max(all_values)]
 
 
@@ -72,19 +71,19 @@ alpha_max = 0.50
 fig = plt.figure(figsize=(8.0,6.0))
 ax = fig.add_subplot(111)
 
-ax.set_title("%s by %s [%s-%s timesteps]" % (args.ylabel, args.xlabel, ts_start * ts_size, ts_stop * ts_size))
+ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, row_start, row_stop))
 ax.set_ylim(y_range)
 ax.set_xlim(x_range)
 
 x_range = range(1, len(values) + 1)
-for i, ts in enumerate(timesteps):
-    if i == len(timesteps) - 1:
+for i, ts in enumerate(rows):
+    if i == len(rows) - 1:
         alpha = 1.00
         width = 4
     else:
-        alpha = alpha_min + i*(alpha_max - alpha_min)/len(timesteps)
+        alpha = alpha_min + i*(alpha_max - alpha_min)/len(rows)
         width = 0.5
 
-    ax.plot(x_range, values_by_timesteps[i], 'b', alpha=alpha, lw=width)
+    ax.plot(x_range, values_by_rows[i], 'b', alpha=alpha, lw=width)
 
 fig.savefig(args.filepath + ".png", dpi=144)
