@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 
 import sys
 
@@ -32,6 +32,12 @@ if temps:
     print(temps)
 
 
+timesteps = timesteps[00:100]
+temps_by_timesteps = temps_by_timesteps[00:100]
+y_range=(0.3,0.7)
+x_range = (1,28)
+# all_temps = [t for temps in temps_by_timesteps for t in temps]
+# y_range = [min(all_temps), max(all_temps)]
 
 
 from bokeh.plotting import figure, show, output_file
@@ -39,7 +45,7 @@ from bokeh.plotting import figure, show, output_file
 alpha_min = 0.25
 alpha_max = 0.75
 
-p = figure(title="Temps across Z", plot_width = 600, plot_height=400, x_range=(1,40), y_range=(260,330))
+p = figure(title="Temps across Z", plot_width = 600, plot_height=400, x_range=x_range, y_range=y_range)
 z_range = range(1, len(temps) + 1)
 for i, ts in enumerate(timesteps):
     if i == len(timesteps) - 1:
