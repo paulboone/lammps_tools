@@ -1,4 +1,4 @@
-#!/bin/env/python3
+#!/usr/bin/env python3
 
 import sys
 
@@ -13,7 +13,7 @@ def output_tsv_line(timestep, temps):
 
 
 with open(filename, 'r') as f:
-    for line in f:    
+    for line in f:
         if line.startswith('#'):
             pass
         elif line[0].isdigit():
