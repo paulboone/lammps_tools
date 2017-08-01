@@ -1,35 +1,24 @@
 #!/usr/bin/env python3
 
+import argparse
 import numpy as np
 import re
 import sys
 from tabulate import tabulate
 
-def thermo_from_lammps_log(f, last_timestep=-1):
-    found_data = False
-    cols = []
-    data = []
-    for line in f:
-        if not found_data:
-            if not line.startswith('Step'):
-                pass
-            else:
-                cols = line.strip().split()
-                print("found columns: %s" % cols)
-                found_data = True
-        else:
-            if not line.startswith("Loop"):
-                raw_data = line.strip().split()
-                raw_data[0] = int(raw_data[0])
-                for i in range(1,len(raw_data)):
-                    raw_data[i] = float(raw_data[i])
+from utils import thermo_from_lammps_log
 
-                if raw_data[0] == last_timestep:
-                    print("INFO: skipping first line of new file b/c timestep is the same.")
-                else:
-                    data.append(raw_data)
-            else:
-                return cols, data
+parser = argparse.ArgumentParser("./eq_trends.py")
+parser.add_argument('columns', help="VTPDE1-9 columns to use (VTPDE only works if file is output that way)")
+parser.add_argument('startdata', help="")
+parser.add_argument('nrows', help="")
+parser.add_argument('filepaths', nargs='+', help="Path to LAMMPS log(s)")
+args = parser.parse_args()
+
+calcs = args.columns
+startdata = int(args.startdata)
+nrows = int(args.nrows)
+filenames = args.filepaths
 
 
 def col_from_calc(calc):
@@ -38,15 +27,11 @@ def col_from_calc(calc):
     else:
         return "VTPDE".index(calc) + 1
 
-
-calcs = sys.argv[1] # VTPDE
-startdata = int(sys.argv[2])
-nrows = int(sys.argv[3])
-filenames = sys.argv[4:]
 cols = []
 data = []
 last_timestep = -1
 for filename in filenames:
+    print(filename)
     with open(filename, 'r') as f:
         cols1, data1 = thermo_from_lammps_log(f, last_timestep=last_timestep)
         last_timestep = data1[-1][0]
