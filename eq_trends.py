@@ -9,9 +9,10 @@ from tabulate import tabulate
 from utils import thermo_from_lammps_log
 
 parser = argparse.ArgumentParser("./eq_trends.py")
-parser.add_argument("--startdata", "-s", default=0, help="start at row")
-parser.add_argument("--nrows", "-n", default=100, help="rows to average over")
+parser.add_argument("--startdata", "-s", default=0, help="start at row. Defaults to 0.")
+parser.add_argument("--nrows", "-n", default=100, help="rows to average over. Defaults to 100.")
 parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
+parser.add_argument("--timesteps_per_row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
 parser.add_argument('filepaths', nargs='+', help="Path to LAMMPS log(s)")
 args = parser.parse_args()
 
@@ -22,6 +23,7 @@ calcs = [int(x) for x in calcs]
 startdata = int(args.startdata)
 nrows = int(args.nrows)
 filenames = args.filepaths
+timesteps_per_row = int(args.timesteps_per_row)
 
 cols = []
 data = []
@@ -43,7 +45,7 @@ data = np.array(data)
 def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
     y = data[:,col][rowstart:rowstop]
-    a = np.vstack([x, np.ones(len(x))]).T    
+    a = np.vstack([x, np.ones(len(x))]).T
     slope, c = np.linalg.lstsq(a, y)[0]
 
     average = np.average(y)
@@ -65,8 +67,6 @@ def calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row):
     return calc_row
 
 print()
-timesteps_per_row = 10000
-
 print("Timesteps Per Row: %s" % timesteps_per_row)
 print("Number rows in a period: %s" % nrows)
 print("Total timesteps in a period (Ts_P): %s" % (nrows * timesteps_per_row))
@@ -104,7 +104,7 @@ for i, calc in enumerate(calcs):
 print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
 print()
 
-
+print("CUMULATIVE")
 results = []
 for i in range(0,int((len(data) - startdata)/nrows)):
     rowstart = 1 + startdata
