@@ -43,8 +43,7 @@ data = np.array(data)
 def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
     y = data[:,col][rowstart:rowstop]
-    a = np.vstack([x, np.ones(len(x))]).T
-    # print(a,y)
+    a = np.vstack([x, np.ones(len(x))]).T    
     slope, c = np.linalg.lstsq(a, y)[0]
 
     average = np.average(y)
@@ -116,50 +115,3 @@ for i in range(0,int((len(data) - startdata)/nrows)):
 
 headers = [col for i,col in enumerate(headers) if i==0 or ((i-1) % 7) in [1,5]]
 print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
-
-
-# print("FROM PERIOD START TO LAST DATA POINT")
-# results = []
-# for i in range(0,int(len(data)/nrows)):
-#     rowstart = i * nrows + 1
-#     rowstop = len(data)
-#     calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
-#     for i, calc in enumerate(calcs):
-#         calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i]) + ['||']
-#     results.append(calc_row)
-#
-# print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
-# print()
-
-
-# for i in range(0,int(len(data)/nrows)):
-#     rowstart = i * nrows
-#     rowstop = len(data) - 1
-#     results.append(calc_stats(data, rowstart, rowstop, total_range))
-#
-
-# print(tabulate(results, ["Rows", "Range", "Slope", "∆ (Ts_P)", "∆ / TotRange"], floatfmt="+.2E", stralign='right'))
-
-
-# results = []
-# for i in range(0,int(len(data)/nrows)):
-#     rowstart = i * nrows
-#     rowstop = len(data)
-#     x = data[:,0][rowstart:rowstop]
-#     y = data[:,1][rowstart:rowstop]
-#     a = np.vstack([x, np.ones(len(x))]).T
-#     slope, c = np.linalg.lstsq(a, y)[0]
-#     results.append(["%s-%s" % (rowstart, rowstop), slope])
-#
-# print(tabulate(results, ["Rows", "Slope"], floatfmt="+.2E"))
-
-
-
-#
-
-#
-#
-#
-# # for row in data:
-# #
-# print(tabulate(data, cols))
