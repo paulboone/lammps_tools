@@ -7,7 +7,7 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-parser = argparse.ArgumentParser("./lammps_to_plot.py") #help='Process LAMMPS chunks file and plot'
+parser = argparse.ArgumentParser("./lmp_plot_chunks.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filepath', help="Path to LAMMPS chunks output file")
 parser.add_argument("--ylabel", "--yl", default="Unspecified Varname", help="variable measured in the LAMMPS file")
 parser.add_argument("--xlabel", "--xl", default="chunk", help="chunk dimension")
