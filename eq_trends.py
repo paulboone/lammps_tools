@@ -9,23 +9,19 @@ from tabulate import tabulate
 from utils import thermo_from_lammps_log
 
 parser = argparse.ArgumentParser("./eq_trends.py")
-parser.add_argument('columns', help="VTPDE1-9 columns to use (VTPDE only works if file is output that way)")
-parser.add_argument('startdata', help="")
-parser.add_argument('nrows', help="")
+parser.add_argument("--startdata", "-s", default=0, help="start at row")
+parser.add_argument("--nrows", "-n", default=100, help="rows to average over")
+parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
 parser.add_argument('filepaths', nargs='+', help="Path to LAMMPS log(s)")
 args = parser.parse_args()
 
-calcs = args.columns
+print(args.columns)
+
+calcs, labels = zip(*args.columns)
+calcs = [int(x) for x in calcs]
 startdata = int(args.startdata)
 nrows = int(args.nrows)
 filenames = args.filepaths
-
-
-def col_from_calc(calc):
-    if re.match("\d", calc):
-        return int(calc)
-    else:
-        return "VTPDE".index(calc) + 1
 
 cols = []
 data = []
@@ -66,12 +62,11 @@ def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
 def calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row):
     calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
     for i, calc in enumerate(calcs):
-        calc_row += calc_stats(data, col_from_calc(calc), rowstart, rowstop, total_range[i], timesteps_per_row) + ['||']
+        calc_row += calc_stats(data, calc, rowstart, rowstop, total_range[i], timesteps_per_row) + ['||']
     return calc_row
 
 print()
 timesteps_per_row = 10000
-# nrows = 200
 
 print("Timesteps Per Row: %s" % timesteps_per_row)
 print("Number rows in a period: %s" % nrows)
@@ -79,7 +74,7 @@ print("Total timesteps in a period (Ts_P): %s" % (nrows * timesteps_per_row))
 print()
 
 print("NOTE: Total Range skips the first row due to potentially high values from packing.")
-total_range = [max(data[1:,col_from_calc(calc)]) - min(data[1:,col_from_calc(calc)]) for calc in calcs]
+total_range = [max(data[1:,calc]) - min(data[1:,calc]) for calc in calcs]
 
 print("Total Range (TR):")
 for i, calc in enumerate(calcs):
@@ -104,8 +99,8 @@ for i in range(0,int((len(data) - startdata)/nrows)):
     results.append(calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row))
 
 headers = ["Rows"]
-for calc in calcs:
-    headers += ["%s Range" % calc, "%s Average" % calc, "Slope (m)", "m*Ts_P", "m*Ts_P/TR", "m*Ts_P/avg", '||']
+for i, calc in enumerate(calcs):
+    headers += ["%s Range" % labels[i], "%s Average" % labels[i], "Slope (m)", "m*Ts_P", "m*Ts_P/TR", "m*Ts_P/avg", '||']
 
 print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
 print()

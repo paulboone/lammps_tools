@@ -8,7 +8,6 @@ def thermo_from_lammps_log(f, last_timestep=-1):
     cols = []
     data = []
     for line in f:
-        # print(line)
         if not found_data:
             if not line.startswith('Step'):
                 pass
@@ -19,7 +18,6 @@ def thermo_from_lammps_log(f, last_timestep=-1):
         else:
             if not line.startswith("Loop"):
                 raw_data = line.strip().split()
-                print(raw_data)
                 raw_data[0] = int(raw_data[0])
                 for i in range(1,len(raw_data)):
                     raw_data[i] = float(raw_data[i])
