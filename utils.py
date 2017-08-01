@@ -29,7 +29,7 @@ def thermo_from_lammps_log(f, last_timestep=-1):
             else:
                 break
 
-    if len(data[-1]) < len(data[-2]):
+    if len(data) > 1 and len(data[-1]) < len(data[-2]):
         print("INFO: removing last row of data because it is imcomplete")
         data.pop()
 

@@ -16,8 +16,6 @@ parser.add_argument("--timesteps_per_row", "-t", default=10000, help="timesteps 
 parser.add_argument('filepaths', nargs='+', help="Path to LAMMPS log(s)")
 args = parser.parse_args()
 
-print(args.columns)
-
 calcs, labels = zip(*args.columns)
 calcs = [int(x) for x in calcs]
 startdata = int(args.startdata)
