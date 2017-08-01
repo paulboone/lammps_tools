@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import numpy as np
+import csv
 import re
 import sys
+
+import numpy as np
 from tabulate import tabulate
 
 from utils import thermo_from_lammps_log
@@ -13,32 +15,18 @@ parser.add_argument("--startdata", "-s", default=0, help="start at row. Defaults
 parser.add_argument("--nrows", "-n", default=100, help="rows to average over. Defaults to 100.")
 parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
 parser.add_argument("--timesteps_per_row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
-parser.add_argument('filepaths', nargs='+', help="Path to LAMMPS log(s)")
+parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
 args = parser.parse_args()
 
 calcs, labels = zip(*args.columns)
 calcs = [int(x) for x in calcs]
 startdata = int(args.startdata)
 nrows = int(args.nrows)
-filenames = args.filepaths
 timesteps_per_row = int(args.timesteps_per_row)
 
-cols = []
-data = []
-last_timestep = -1
-for filename in filenames:
-    print(filename)
-    with open(filename, 'r') as f:
-        cols1, data1 = thermo_from_lammps_log(f, last_timestep=last_timestep)
-        last_timestep = data1[-1][0]
-        if not cols:
-            cols = cols1
-        elif cols != cols1:
-            print("WARNING: columns do not match: %s != %s" % (cols, cols1))
-
-        data += data1
-
-data = np.array(data)
+tsv = csv.reader(args.filename, delimiter="\t")
+cols = next(tsv)
+data = np.array([row for row in tsv], dtype=float)
 
 def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
