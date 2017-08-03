@@ -5,3 +5,5 @@
 *.xlsx
 *.tsv
 *.lammps
+__pycache__
+*.pyc
