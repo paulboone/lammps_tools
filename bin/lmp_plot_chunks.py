@@ -69,9 +69,12 @@ rows=rows[row_start:row_stop]
 values_by_rows=values_by_rows[row_start:row_stop]
 
 if avg_every > 1:
+    if len(rows) % avg_every != 0:
+        print("WARNING: rows is not evenly divisible by avg-every. Truncating to largest multiple of avg-every.")
+        rows = rows[0:(len(rows) // avg_every) * avg_every]
+        values_by_rows=values_by_rows[0:len(rows)]
     rows = rows[avg_every-1::avg_every]
     values_by_rows=values_by_rows.reshape([len(rows), avg_every, num_chunks]).mean(1)
-
 
 #### handle other args
 if args.xrange:
