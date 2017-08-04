@@ -27,7 +27,6 @@ timesteps_per_row = int(args.timesteps_per_row)
 tsv = csv.reader(args.filename, delimiter="\t")
 cols = next(tsv)
 data = np.array([row for row in tsv], dtype=float)
-# print(data)
 
 def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
