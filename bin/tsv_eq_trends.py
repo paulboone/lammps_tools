@@ -79,8 +79,8 @@ if startdata > 0:
 
 
 for i in range(0,int((len(data) - startdata)/nrows)):
-    rowstart = i * nrows + 1 + startdata
-    rowstop = (i + 1) * nrows + 1 + startdata
+    rowstart = i * nrows + startdata
+    rowstop = (i + 1) * nrows + startdata
     results.append(calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row))
 
 headers = ["Rows"]
@@ -93,8 +93,8 @@ print()
 print("CUMULATIVE")
 results = []
 for i in range(0,int((len(data) - startdata)/nrows)):
-    rowstart = 1 + startdata
-    rowstop = (i + 1) * nrows + 1 + startdata
+    rowstart = startdata
+    rowstop = (i + 1) * nrows + startdata
     row = calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row)
     row = [col for i,col in enumerate(row) if i==0 or ((i-1) % 7) in [1,5]]
     results.append(row)
