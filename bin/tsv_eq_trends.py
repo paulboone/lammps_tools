@@ -27,23 +27,18 @@ timesteps_per_row = int(args.timesteps_per_row)
 tsv = csv.reader(args.filename, delimiter="\t")
 cols = next(tsv)
 data = np.array([row for row in tsv], dtype=float)
+# print(data)
 
 def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
     y = data[:,col][rowstart:rowstop]
-    a = np.vstack([x, np.ones(len(x))]).T
-    slope, c = np.linalg.lstsq(a, y)[0]
 
     average = np.average(y)
 
     drange = max(y) - min(y)
     minmax = "%s to %s = %s" % (min(y), max(y), drange)
 
-    slope_per_period = slope * (rowstop - rowstart) * timesteps_per_row
-    slope_per_range_perc = slope_per_period * 100 / total_range
-    slope_per_avg_perc =   slope_per_period * 100 / average
-
-    return [minmax, average, slope, slope_per_period, "%+4.2f%%" % slope_per_range_perc, "%+4.2f%%" % slope_per_avg_perc]
+    return [minmax, average]
 
 
 def calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row):
@@ -85,7 +80,7 @@ for i in range(0,int((len(data) - startdata)/nrows)):
 
 headers = ["Rows"]
 for i, calc in enumerate(calcs):
-    headers += ["%s Range" % labels[i], "%s Average" % labels[i], "Slope (m)", "m*Ts_P", "m*Ts_P/TR", "m*Ts_P/avg", '||']
+    headers += ["%s Range" % labels[i], "%s Average" % labels[i], '||']
 
 print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
 print()
@@ -96,8 +91,8 @@ for i in range(0,int((len(data) - startdata)/nrows)):
     rowstart = startdata
     rowstop = (i + 1) * nrows + startdata
     row = calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row)
-    row = [col for i,col in enumerate(row) if i==0 or ((i-1) % 7) in [1,5]]
+    row = [col for i,col in enumerate(row) if i==0 or ((i-1) % 3) in [1]]
     results.append(row)
 
-headers = [col for i,col in enumerate(headers) if i==0 or ((i-1) % 7) in [1,5]]
+headers = [col for i,col in enumerate(headers) if i==0 or ((i-1) % 3) in [1]]
 print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
