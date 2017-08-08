@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import csv
 from math import ceil
 import sys
 
@@ -8,7 +9,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 parser = argparse.ArgumentParser("./lmp_plot_chunks.py") #help='Process LAMMPS chunks file and plot'
-parser.add_argument('filepath', help="Path to LAMMPS chunks output file")
+parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
 parser.add_argument("--ylabel", "--yl", default="Unspecified Varname", help="variable measured in the LAMMPS file")
 parser.add_argument("--xlabel", "--xl", default="chunk", help="chunk dimension")
 parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop rows. Defaults to plotting all rows.")
@@ -22,30 +23,11 @@ rows = []
 values_by_rows = []
 values = []
 
-with open(args.filepath, 'r') as f:
-    for line in f:
-        if line.startswith('#'):
-            pass
-        elif line[0].isdigit():
-            if values:
-                rows.append(timestep)
-                values_by_rows.append(values)
-                values = []
-            timestep, num_chunks, _ = line.split()
-
-        elif line.strip() == "":
-            pass
-        else:
-            _,_,_, temp = line.split()
-            values.append(temp)
-
-if values:
-    rows.append(timestep)
-    values_by_rows.append(values)
-
-rows = np.array(rows).astype(int)
-values_by_rows = np.array(values_by_rows).astype(float)
-
+tsv = csv.reader(args.filename, delimiter="\t")
+cols = next(tsv)
+data = np.array([row for row in tsv], dtype=float)
+rows = data[:,0]
+values_by_rows = np.array(data[:,1:]).astype(float)
 
 #### handle y_range b/c if nothing passed, we want to use the full data set before it gets sliced.
 if args.yrange:
@@ -55,7 +37,7 @@ else:
 
 
 #### limit rows and average, if necessary
-num_chunks = int(num_chunks)
+num_chunks = len(values_by_rows[0,:])
 avg_every = int(args.avg_every)
 
 if args.rows:
@@ -122,4 +104,10 @@ for plot_index in range(1, num_plots + 1):
 
         ax.plot(range(x_range[0], x_range[-1] + 1), values_by_rows[i], 'b', alpha=alpha, lw=width)
 
-fig.savefig(args.filepath + ".png", dpi=144)
+
+if args.filename == sys.stdin:
+    fileout = "tempout"
+else:
+    fileout = args.filename
+
+fig.savefig(fileout + ".png", dpi=144)
