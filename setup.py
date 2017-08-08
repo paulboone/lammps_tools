@@ -14,6 +14,7 @@ setup(
     scripts=[
             'bin/lmp_avgs_to_tsv.py',
             'bin/lmp_log_to_tsv.py',
+            'bin/lmp_chunks_to_tsv.py',
             'bin/lmp_plot_chunks.py',
             'bin/tsv_eq_trends.py'
     ]
