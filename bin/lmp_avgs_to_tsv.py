@@ -7,16 +7,14 @@ import sys
 from utils import thermo_from_lammps_log
 
 parser = argparse.ArgumentParser("./lmp_log_to_tsv.py")
-parser.add_argument('filepaths', nargs='+', help="Path to LAMMPS averages file(s)")
+parser.add_argument('filenames', nargs='+', help="Path(s) to LAMMPS average output file(s)")
 args = parser.parse_args()
-
-filenames = args.filepaths
 
 cols = []
 last_timestep = -1
 tsv = csv.writer(sys.stdout, delimiter="\t")
 
-for filename in filenames:
+for filename in args.filenames:
     with open(filename, 'r') as f:
         _ = next(f)
         cols1 = next(f)[2:].strip().split()
