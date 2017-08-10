@@ -18,8 +18,8 @@ parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx',
 args = parser.parse_args()
 
 avg_every = int(args.avg_every)
-
 tsv = csv.reader(args.filename, delimiter="\t")
+
 cols = next(tsv)
 data = np.array([row for row in tsv], dtype=float)
 rows = data[:,0]
@@ -78,6 +78,6 @@ for plot_index in range(0, num_plots):
 if args.filename == sys.stdin:
     fileout = "tempout"
 else:
-    fileout = args.filename
+    fileout = args.filename.name
 
 fig.savefig(fileout + ".png", dpi=144)

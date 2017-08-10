@@ -108,6 +108,6 @@ for plot_index in range(1, num_plots + 1):
 if args.filename == sys.stdin:
     fileout = "tempout"
 else:
-    fileout = args.filename
+    fileout = args.filename.name
 
 fig.savefig(fileout + ".png", dpi=144)
