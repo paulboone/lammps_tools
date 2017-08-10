@@ -32,7 +32,6 @@ for filename in args.filenames:
                 values.append(chunkval)
 
     if values:
-        print(values_by_rows[-1])
         if len(values) != len(values_by_rows[-1]):
             raise Exception("# of chunks does not match in file %s timestep %s (%s != %s)" % (filename, timestep, len(values), len(values_by_rows[-1])))
 
