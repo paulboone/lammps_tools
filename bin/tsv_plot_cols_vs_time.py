@@ -80,4 +80,4 @@ if args.filename == sys.stdin:
 else:
     fileout = args.filename.name
 
-fig.savefig(fileout + ".png", dpi=144)
+fig.savefig(fileout + "cols.png", dpi=144)
