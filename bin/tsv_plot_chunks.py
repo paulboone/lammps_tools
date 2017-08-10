@@ -82,6 +82,7 @@ x_range = [1, num_chunks]
 for plot_index in range(1, num_plots + 1):
     print(plot_index)
     ax = fig.add_subplot(num_plots, 1, plot_index)
+    ax.grid(linestyle='-', color='0.7', zorder=0)
     ax.set_ylim(y_range)
     ax.set_xlim(x_range)
 
@@ -102,7 +103,7 @@ for plot_index in range(1, num_plots + 1):
             alpha = alpha_min + (i - grow_start)*(alpha_max - alpha_min)/(grow_stop - grow_start)
             width = 0.5
 
-        ax.plot(range(x_range[0], x_range[-1] + 1), values_by_rows[i], 'b', alpha=alpha, lw=width)
+        ax.plot(range(x_range[0], x_range[-1] + 1), values_by_rows[i], 'b', alpha=alpha, lw=width, zorder=3)
 
 
 if args.filename == sys.stdin:

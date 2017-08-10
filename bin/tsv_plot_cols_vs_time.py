@@ -61,7 +61,7 @@ for plot_index in range(0, num_plots):
     col = int(args.columns[plot_index][0])
     ax = fig.add_subplot(num_plots, 1, plot_index + 1)
     ax.set_title("%s by timestep" % (args.columns[plot_index][1]))
-
+    ax.grid(linestyle='-', color='0.7', zorder=0)
 
     values = values_by_rows[:, col]
 
@@ -73,7 +73,7 @@ for plot_index in range(0, num_plots):
     ax.set_ylim(y_range)
     ax.set_xlim(x_range)
 
-    ax.plot(rows, values, 'b')
+    ax.plot(rows, values, 'b', zorder=3)
 
 if args.filename == sys.stdin:
     fileout = "tempout"
