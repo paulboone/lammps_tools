@@ -64,9 +64,6 @@ if args.xrange:
 else:
     x_range = (1, int(num_chunks))
 
-alpha_min = 0.25
-alpha_max = 0.50
-
 if args.plot_every:
     plot_every = int(args.plot_every)
 else:
@@ -80,7 +77,7 @@ fig = plt.figure(figsize=(8.0,4.0 * num_plots))
 x_range = [1, num_chunks]
 
 for plot_index in range(1, num_plots + 1):
-    print(plot_index)
+    print("making plot # %s" % plot_index)
     ax = fig.add_subplot(num_plots, 1, plot_index)
     ax.grid(linestyle='-', color='0.7', zorder=0)
     ax.set_ylim(y_range)
@@ -95,15 +92,14 @@ for plot_index in range(1, num_plots + 1):
 
     ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, text_start, text_stop))
 
-    for i in range(grow_start, grow_stop):
-        if i == grow_stop - 1:
-            alpha = 1.00
-            width = 1
-        else:
-            alpha = alpha_min + (i - grow_start)*(alpha_max - alpha_min)/(grow_stop - grow_start)
-            width = 0.5
+    x_chunks = list(range(x_range[0], x_range[-1] + 1))
+    plot_rows = values_by_rows[grow_start:grow_stop]
+    for row in plot_rows:
+        ax.plot(x_chunks, row, 'b', alpha=0.5, lw=0.5, zorder=3)
 
-        ax.plot(range(x_range[0], x_range[-1] + 1), values_by_rows[i], 'b', alpha=alpha, lw=width, zorder=3)
+    # average rows in plot
+    averaged_plot_values = plot_rows.reshape([1, grow_stop - grow_start, num_chunks]).mean(1)[0]
+    ax.plot(x_chunks, averaged_plot_values, 'b', alpha=1.0, lw=2, zorder=4)
 
 
 if args.filename == sys.stdin:
