@@ -6,6 +6,7 @@ from math import ceil
 import sys
 
 from matplotlib import pyplot as plt
+# from matplotlib.colormaps import cmaps
 import numpy as np
 
 parser = argparse.ArgumentParser("./lmp_plot_chunks.py") #help='Process LAMMPS chunks file and plot'
@@ -17,6 +18,7 @@ parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to aver
 parser.add_argument("--plot-every", "-p", default=None, help="Number of rows per plot. Must be a multiple of avg-every, if that is used.")
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
+parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
 args = parser.parse_args()
 
 rows = []
@@ -75,6 +77,7 @@ num_plots = ceil(len(rows) / plot_every)
 #### plot all plots
 fig = plt.figure(figsize=(8.0,4.0 * num_plots))
 x_range = [1, num_chunks]
+x_chunks = list(range(x_range[0], x_range[-1] + 1))
 
 for plot_index in range(1, num_plots + 1):
     print("making plot # %s" % plot_index)
@@ -92,14 +95,25 @@ for plot_index in range(1, num_plots + 1):
 
     ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, text_start, text_stop))
 
-    x_chunks = list(range(x_range[0], x_range[-1] + 1))
     plot_rows = values_by_rows[grow_start:grow_stop]
-    for row in plot_rows:
-        ax.plot(x_chunks, row, 'b', alpha=0.5, lw=0.5, zorder=3)
 
     # average rows in plot
     averaged_plot_values = plot_rows.reshape([1, grow_stop - grow_start, num_chunks]).mean(1)[0]
-    ax.plot(x_chunks, averaged_plot_values, 'b', alpha=1.0, lw=2, zorder=4)
+    ax.plot(x_chunks, averaged_plot_values, '#FFD700', alpha=1.0, lw=2, zorder=4)
+    legend = ['overall average']
+
+    if args.show_fit:
+        # add fit line to plot
+        m, c = np.linalg.lstsq(np.vstack([x_chunks, np.ones(len(x_chunks))]).T, averaged_plot_values)[0]
+        legend += ["%.2fx + %.2f" % (m, c)]
+
+        lin_fit_values = [m*x + c for x in x_chunks]
+        ax.plot(x_chunks, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
+
+    for row in plot_rows:
+        ax.plot(x_chunks, row, '#4682B4', alpha=0.5, lw=0.5, zorder=3)
+
+    ax.legend(legend)
 
 
 if args.filename == sys.stdin:
