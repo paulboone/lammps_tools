@@ -10,6 +10,8 @@ from matplotlib.figure import figaspect
 
 import numpy as np
 
+from utils import human_format
+
 parser = argparse.ArgumentParser("./lmp_plot_chunks.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
 parser.add_argument("--ylabel", "--yl", default="Unspecified Varname", help="variable measured in the LAMMPS file")
@@ -22,6 +24,8 @@ parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. De
 parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
 parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
 parser.add_argument("--chunksize", "--cs", default=1.0, help="Chunk size")
+parser.add_argument("--timesteps-per-row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
+parser.add_argument("--start-timesteps", default=0, help="starting number of timesteps")
 args = parser.parse_args()
 
 rows = []
@@ -33,6 +37,8 @@ cols = next(tsv)
 data = np.array([row for row in tsv], dtype=float)
 rows = data[:,0]
 values_by_rows = np.array(data[:,1:]).astype(float)
+timesteps_per_row = float(args.timesteps_per_row)
+start_timesteps = int(args.start_timesteps)
 
 #### handle y_range b/c if nothing passed, we want to use the full data set before it gets sliced.
 if args.yrange:
@@ -103,7 +109,8 @@ for plot_index in range(1, num_plots + 1):
     text_start = row_start + grow_start * avg_every
     text_stop =  row_start + grow_stop * avg_every
 
-    ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, text_start, text_stop))
+    ax.set_title("%s by %s: Timesteps %s-%s" % (args.ylabel, args.xlabel,
+        human_format(text_start * timesteps_per_row + start_timesteps), human_format(text_stop * timesteps_per_row + start_timesteps)))
     ax.set_xlabel(args.xlabel)
     ax.set_ylabel(args.ylabel)
 
