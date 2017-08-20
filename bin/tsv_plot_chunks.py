@@ -19,6 +19,7 @@ parser.add_argument("--plot-every", "-p", default=None, help="Number of rows per
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
 parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
+parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
 args = parser.parse_args()
 
 rows = []
@@ -112,6 +113,10 @@ for plot_index in range(1, num_plots + 1):
 
     for row in plot_rows:
         ax.plot(x_chunks, row, '#4682B4', alpha=0.5, lw=0.5, zorder=3)
+
+    for vs, ve, color in args.vspan:
+        ax.axvspan(vs, ve, color=color)
+
 
     ax.legend(legend)
 
