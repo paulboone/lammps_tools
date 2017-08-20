@@ -20,6 +20,7 @@ parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. De
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
 parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
 parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
+parser.add_argument("--chunksize", "--cs", default=1.0, help="Chunk size")
 args = parser.parse_args()
 
 rows = []
@@ -42,6 +43,7 @@ else:
 #### limit rows and average, if necessary
 num_chunks = len(values_by_rows[0,:])
 avg_every = int(args.avg_every)
+chunksize = float(args.chunksize)
 
 if args.rows:
     row_start = int(args.rows[0])
@@ -82,8 +84,8 @@ num_plots = ceil(len(rows) / plot_every)
 
 #### plot all plots
 fig = plt.figure(figsize=(8.0,4.0 * num_plots))
-x_range = [0, num_chunks-1]
-x_chunks = np.array(range(x_range[0], x_range[-1] + 1))
+x_range = np.array([0, num_chunks-1], dtype=float) * chunksize
+x_chunks = np.array(range(0, num_chunks), dtype=float) * chunksize
 
 for plot_index in range(1, num_plots + 1):
     print("making plot # %s" % plot_index)
@@ -105,22 +107,22 @@ for plot_index in range(1, num_plots + 1):
 
     # average rows in plot
     averaged_plot_values = plot_rows.reshape([1, grow_stop - grow_start, num_chunks]).mean(1)[0]
-    ax.plot(x_chunks[0:-1] + 0.5, averaged_plot_values[0:-1], '#FFD700', alpha=1.0, lw=2, zorder=4)
+    ax.plot(x_chunks[0:-1] + 0.5 * chunksize, averaged_plot_values[0:-1], '#FFD700', alpha=1.0, lw=2, zorder=4)
     legend = ['overall average']
 
     if args.show_fit:
         # add fit line to plot
-        m, c = np.linalg.lstsq(np.vstack([x_chunks, np.ones(len(x_chunks))]).T, averaged_plot_values)[0]
+        m, c = np.linalg.lstsq(np.vstack([x_chunks[0:-1], np.ones(len(x_chunks) - 1)]).T, averaged_plot_values[0:-1])[0]
         legend += ["%.2fx + %.2f" % (m, c)]
 
-        lin_fit_values = [m*x + c for x in x_chunks]
-        ax.plot(x_chunks, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
+        lin_fit_values = [m*x + c for x in x_chunks[0:-1]]
+        ax.plot(x_chunks[0:-1] + 0.5 * chunksize, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
 
     for row in plot_rows:
         ax.plot(np.array(x_chunks), row, '#4682B4', alpha=0.5, lw=0.5, zorder=3, drawstyle='steps-post')
 
     for vs, ve, color in args.vspan:
-        ax.axvspan(vs, ve, color=color)
+        ax.axvspan(np.array(vs, dtype=float) * chunksize, np.array(ve, dtype=float) * chunksize, color=color)
 
 
     ax.legend(legend)
