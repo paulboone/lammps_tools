@@ -39,7 +39,7 @@ for filename in args.filenames:
         values_by_rows.append(values)
 
 
-tsv = csv.writer(sys.stdout, delimiter="\t")
+tsv = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
 tsv.writerow(['Timestep'] + list(range(1, num_chunks + 1)))
 for idx, r in enumerate(rows):
     tsv.writerow([rows[idx]] + values_by_rows[idx])

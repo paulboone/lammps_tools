@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 cols = []
 last_timestep = -1
-tsv = csv.writer(sys.stdout, delimiter="\t")
+tsv = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
 
 for filename in args.filenames:
     with open(filename, 'r') as f:
