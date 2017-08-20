@@ -15,15 +15,17 @@ parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to aver
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
 parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
-parser.add_argument("--ylabel", "--yl", default="Heat Flux", help="total of all columns")
+parser.add_argument("--ylabel", "--yl", default="Heat Flux [Kcal / mol A^2]", help="total of all columns")
 parser.add_argument("--xlabel", "--xl", default="Timestep", help="x dimension")
 
 args = parser.parse_args()
 
+
+columns = [(int(col_index) - 1, col_label) for col_index, col_label in args.columns]
 avg_every = int(args.avg_every)
 tsv = csv.reader(args.filename, delimiter="\t")
 
-cols = next(tsv)
+cols = next(tsv) # skip header
 data = np.array([row for row in tsv]) # , dtype=float
 rows = data[:,0]
 values_by_rows = np.array(data[:,1:]).astype(float)
@@ -48,12 +50,13 @@ if avg_every > 1:
     values_by_rows=values_by_rows.reshape([len(rows), avg_every, len(values_by_rows[0,:])]).mean(1)
 
 
-colors = ['y','b','g']
+colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fdbf6f','#ffff99','#ff7f00','#cab2d6','#6a3d9a','#b15928','#fb9a99','#e31a1c']
+
 num_plots = 1
 bar_width = 0.65
 bar_buffer = bar_width / 2
 bar_indices = np.arange(len(rows))
-bar_x = rows.astype(float) + bar_buffer
+bar_x = np.array(range(1,len(rows) + 1)) + bar_buffer
 
 
 #### handle other args
@@ -63,7 +66,7 @@ else:
     x_range = (1, len(rows) + 1 + bar_buffer)
 
 col_sums = np.zeros(len(rows))
-for col_index, col_name in args.columns:
+for col_index, col_name in columns:
     col_sums += values_by_rows[:,col_index]
 
 if args.yrange:
@@ -72,9 +75,9 @@ else:
     y_range = (0.0, col_sums.max()*1.4)
 
 #### plot all plots
-fig = plt.figure(figsize=(bar_width * len(rows) + 2 * bar_buffer,4.0))
+fig = plt.figure()
 
-col_names = [c[1] for c in args.columns]
+col_names = [c[1] for c in columns]
 
 for plot_index in range(0, 1):
     ax = fig.add_subplot(num_plots, 1, plot_index + 1)
@@ -83,10 +86,10 @@ for plot_index in range(0, 1):
     ax.set_ylim(y_range)
     ax.set_xlim(x_range)
     prior_vals = np.zeros(len(rows))
-    for col_index, col_name in args.columns:
+    for col_index, col_name in columns:
         vals = values_by_rows[:,col_index]
-        ax.bar(bar_x, vals, bar_width, color=colors[int(col_index)], bottom=prior_vals, zorder=3)
-        prior_vals = vals
+        ax.bar(bar_x, vals, bar_width, color=colors[col_index], bottom=prior_vals, zorder=3)
+        prior_vals += vals
     ax.set_xticks(bar_x + bar_width / 2)
     ax.set_xticklabels(rows)
     ax.legend(col_names)
