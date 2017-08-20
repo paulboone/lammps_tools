@@ -6,7 +6,8 @@ from math import ceil
 import sys
 
 from matplotlib import pyplot as plt
-# from matplotlib.colormaps import cmaps
+from matplotlib.figure import figaspect
+
 import numpy as np
 
 parser = argparse.ArgumentParser("./lmp_plot_chunks.py") #help='Process LAMMPS chunks file and plot'
@@ -83,7 +84,8 @@ num_plots = ceil(len(rows) / plot_every)
 
 
 #### plot all plots
-fig = plt.figure(figsize=(8.0,4.0 * num_plots))
+w, h = figaspect(0.5)
+fig = plt.figure(figsize=(w,(h+1)*num_plots))
 x_range = np.array([0, num_chunks-1], dtype=float) * chunksize
 x_chunks = np.array(range(0, num_chunks), dtype=float) * chunksize
 
