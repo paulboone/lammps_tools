@@ -8,6 +8,8 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
+from utils import human_format
+
 parser = argparse.ArgumentParser("./lmp_plot_vs_time.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
 parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop rows. Defaults to plotting all rows.")
@@ -17,7 +19,8 @@ parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. De
 parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
 parser.add_argument("--ylabel", "--yl", default="Heat Flux [Kcal / mol A^2]", help="total of all columns")
 parser.add_argument("--xlabel", "--xl", default="Timestep", help="x dimension")
-
+parser.add_argument("--timesteps-per-row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
+parser.add_argument("--start-timesteps", default=0, help="starting number of timesteps")
 args = parser.parse_args()
 
 
@@ -29,6 +32,9 @@ cols = next(tsv) # skip header
 data = np.array([row for row in tsv]) # , dtype=float
 rows = data[:,0]
 values_by_rows = np.array(data[:,1:]).astype(float)
+timesteps_per_row = float(args.timesteps_per_row)
+start_timesteps = int(args.start_timesteps)
+
 
 if args.rows:
     row_start = int(args.rows[0])
@@ -37,7 +43,7 @@ else:
     row_start = 0
     row_stop = len(rows)
 
-rows=rows[row_start:row_stop]
+rows=np.array(rows[row_start:row_stop], dtype=int)
 values_by_rows=values_by_rows[row_start:row_stop]
 
 
@@ -49,6 +55,7 @@ if avg_every > 1:
     rows = rows[avg_every-1::avg_every]
     values_by_rows=values_by_rows.reshape([len(rows), avg_every, len(values_by_rows[0,:])]).mean(1)
 
+x_labels = [ "%s-%s" % (human_format(row - avg_every * timesteps_per_row), human_format(row)) for row in rows]
 
 colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fdbf6f','#ffff99','#ff7f00','#cab2d6','#6a3d9a','#b15928','#fb9a99','#e31a1c']
 
@@ -91,7 +98,7 @@ for plot_index in range(0, 1):
         ax.bar(bar_x, vals, bar_width, color=colors[col_index], bottom=prior_vals, zorder=3)
         prior_vals += vals
     ax.set_xticks(bar_x + bar_width / 2)
-    ax.set_xticklabels(rows)
+    ax.set_xticklabels(x_labels)
     ax.legend(col_names)
 
 
