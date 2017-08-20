@@ -20,7 +20,6 @@ parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx',
 parser.add_argument("--ylabel", "--yl", default="Heat Flux [Kcal / mol A^2]", help="total of all columns")
 parser.add_argument("--xlabel", "--xl", default="Timestep", help="x dimension")
 parser.add_argument("--timesteps-per-row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
-parser.add_argument("--start-timesteps", default=0, help="starting number of timesteps")
 args = parser.parse_args()
 
 
@@ -33,8 +32,6 @@ data = np.array([row for row in tsv]) # , dtype=float
 rows = data[:,0]
 values_by_rows = np.array(data[:,1:]).astype(float)
 timesteps_per_row = float(args.timesteps_per_row)
-start_timesteps = int(args.start_timesteps)
-
 
 if args.rows:
     row_start = int(args.rows[0])

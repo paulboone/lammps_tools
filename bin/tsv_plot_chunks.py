@@ -25,7 +25,6 @@ parser.add_argument("--show-fit", action='store_true', help="calculate linear fi
 parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
 parser.add_argument("--chunksize", "--cs", default=1.0, help="Chunk size")
 parser.add_argument("--timesteps-per-row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
-parser.add_argument("--start-timesteps", default=0, help="starting number of timesteps")
 args = parser.parse_args()
 
 rows = []
@@ -38,7 +37,7 @@ data = np.array([row for row in tsv], dtype=float)
 rows = data[:,0]
 values_by_rows = np.array(data[:,1:]).astype(float)
 timesteps_per_row = float(args.timesteps_per_row)
-start_timesteps = int(args.start_timesteps)
+start_timesteps = rows[0]
 
 #### handle y_range b/c if nothing passed, we want to use the full data set before it gets sliced.
 if args.yrange:
@@ -113,7 +112,6 @@ for plot_index in range(1, num_plots + 1):
         human_format(text_start * timesteps_per_row + start_timesteps), human_format(text_stop * timesteps_per_row + start_timesteps)))
     ax.set_xlabel(args.xlabel)
     ax.set_ylabel(args.ylabel)
-
 
     plot_rows = values_by_rows[grow_start:grow_stop]
 
