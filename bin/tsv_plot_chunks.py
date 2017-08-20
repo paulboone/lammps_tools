@@ -61,6 +61,11 @@ if avg_every > 1:
     rows = rows[avg_every-1::avg_every]
     values_by_rows=values_by_rows.reshape([len(rows), avg_every, num_chunks]).mean(1)
 
+
+# duplicate last column so that we see a full step for the last step in step graph
+num_chunks += 1
+values_by_rows = np.insert(values_by_rows, -1, values_by_rows[:,-1], axis=1)
+
 #### handle other args
 if args.xrange:
     x_range = [float(xr) for xr in args.xrange]
@@ -77,15 +82,15 @@ num_plots = ceil(len(rows) / plot_every)
 
 #### plot all plots
 fig = plt.figure(figsize=(8.0,4.0 * num_plots))
-x_range = [1, num_chunks]
-x_chunks = list(range(x_range[0], x_range[-1] + 1))
+x_range = [0, num_chunks-1]
+x_chunks = np.array(range(x_range[0], x_range[-1] + 1))
 
 for plot_index in range(1, num_plots + 1):
     print("making plot # %s" % plot_index)
     ax = fig.add_subplot(num_plots, 1, plot_index)
     ax.grid(linestyle='-', color='0.7', zorder=0)
     ax.set_ylim(y_range)
-    ax.set_xlim(x_range)
+    ax.set_xlim(np.array(x_range))
 
 
     grow_start = plot_every * (plot_index - 1)
@@ -100,7 +105,7 @@ for plot_index in range(1, num_plots + 1):
 
     # average rows in plot
     averaged_plot_values = plot_rows.reshape([1, grow_stop - grow_start, num_chunks]).mean(1)[0]
-    ax.plot(x_chunks, averaged_plot_values, '#FFD700', alpha=1.0, lw=2, zorder=4)
+    ax.plot(x_chunks[0:-1] + 0.5, averaged_plot_values[0:-1], '#FFD700', alpha=1.0, lw=2, zorder=4)
     legend = ['overall average']
 
     if args.show_fit:
@@ -112,7 +117,7 @@ for plot_index in range(1, num_plots + 1):
         ax.plot(x_chunks, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
 
     for row in plot_rows:
-        ax.plot(x_chunks, row, '#4682B4', alpha=0.5, lw=0.5, zorder=3)
+        ax.plot(np.array(x_chunks), row, '#4682B4', alpha=0.5, lw=0.5, zorder=3, drawstyle='steps-post')
 
     for vs, ve, color in args.vspan:
         ax.axvspan(vs, ve, color=color)
