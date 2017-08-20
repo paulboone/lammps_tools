@@ -102,6 +102,9 @@ for plot_index in range(1, num_plots + 1):
     text_stop =  row_start + grow_stop * avg_every
 
     ax.set_title("%s by %s [rows %s-%s]" % (args.ylabel, args.xlabel, text_start, text_stop))
+    ax.set_xlabel(args.xlabel)
+    ax.set_ylabel(args.ylabel)
+
 
     plot_rows = values_by_rows[grow_start:grow_stop]
 
