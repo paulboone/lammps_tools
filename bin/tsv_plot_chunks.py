@@ -24,7 +24,6 @@ parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. De
 parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
 parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
 parser.add_argument("--chunksize", "--cs", default=1.0, help="Chunk size")
-parser.add_argument("--timesteps-per-row", "-t", default=10000, help="timesteps per row. Defaults to 10000.")
 args = parser.parse_args()
 
 rows = []
@@ -36,8 +35,8 @@ cols = next(tsv)
 data = np.array([row for row in tsv], dtype=float)
 rows = data[:,0]
 values_by_rows = np.array(data[:,1:]).astype(float)
-timesteps_per_row = float(args.timesteps_per_row)
 start_timesteps = rows[0]
+timesteps_per_row = rows[1] - rows[0]
 
 #### handle y_range b/c if nothing passed, we want to use the full data set before it gets sliced.
 if args.yrange:
