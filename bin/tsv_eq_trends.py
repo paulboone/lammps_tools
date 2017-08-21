@@ -8,7 +8,7 @@ import sys
 import numpy as np
 from tabulate import tabulate
 
-from utils import thermo_from_lammps_log
+from utils import thermo_from_lammps_log, human_format
 
 parser = argparse.ArgumentParser("./eq_trends.py")
 parser.add_argument("--startdata", "-s", default=0, help="start at row. Defaults to 0.")
@@ -31,7 +31,6 @@ data = np.array([row for row in tsv], dtype=float)
 def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
     x = data[:,0][rowstart:rowstop]
     y = data[:,col][rowstart:rowstop]
-
     average = np.average(y)
 
     drange = max(y) - min(y)
@@ -41,7 +40,8 @@ def calc_stats(data, col, rowstart, rowstop, total_range, timesteps_per_row):
 
 
 def calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row):
-    calc_row = ["%s-%s" % (rowstart, rowstop - 1)]
+    calc_row = ["%i-%i" % (rowstart, rowstop)]
+    calc_row += ["%s-%s" % (human_format(data[rowstart][0]), human_format(data[rowstop - 1][0]))]
     for i, calc in enumerate(calcs):
         calc_row += calc_stats(data, calc, rowstart, rowstop, total_range[i], timesteps_per_row) + ['||']
     return calc_row
@@ -77,7 +77,7 @@ for i in range(0,int((len(data) - startdata)/nrows)):
     rowstop = (i + 1) * nrows + startdata
     results.append(calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row))
 
-headers = ["Rows"]
+headers = ["Rows", "Timesteps"]
 for i, calc in enumerate(calcs):
     headers += ["%s Range" % labels[i], "%s Average" % labels[i], '||']
 
@@ -90,8 +90,8 @@ for i in range(0,int((len(data) - startdata)/nrows)):
     rowstart = startdata
     rowstop = (i + 1) * nrows + startdata
     row = calc_row(data, calcs, rowstart, rowstop, total_range, timesteps_per_row)
-    row = [col for i,col in enumerate(row) if i==0 or ((i-1) % 3) in [1]]
+    row = [col for i,col in enumerate(row) if i==0 or i==1 or ((i-1) % 3) in [2]]
     results.append(row)
 
-headers = [col for i,col in enumerate(headers) if i==0 or ((i-1) % 3) in [1]]
+headers = [col for i,col in enumerate(headers) if i==0 or i==1 or ((i-1) % 3) in [2]]
 print(tabulate(results, headers, floatfmt="+.2E", stralign='right'))
