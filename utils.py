@@ -33,7 +33,7 @@ def thermo_from_lammps_log(f, last_timestep=-1, verbose=False):
 
     return cols, data
 
-def data_from_lammps_data(f, header, last_timestep=-1, verbose=False):
+def data_from_lammps_data(f, header):
     found_data = False
     data = []
     for line in f:
