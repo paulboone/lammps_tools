@@ -1,4 +1,4 @@
-
+import re
 
 
 def thermo_from_lammps_log(f, last_timestep=-1, verbose=False):
@@ -32,6 +32,24 @@ def thermo_from_lammps_log(f, last_timestep=-1, verbose=False):
         data.pop()
 
     return cols, data
+
+def data_from_lammps_data(f, header, last_timestep=-1, verbose=False):
+    found_data = False
+    data = []
+    for line in f:
+        if not found_data:
+            if re.match(r"^ *%s"%header, line, re.IGNORECASE):
+                found_data = True
+        else:
+            if re.match(r"^ *[a-zA-Z]", line):
+                break;
+            else:
+                raw_data = line.strip()
+                if raw_data:
+                    data.append(raw_data.split())
+
+    return data
+
 
 
 def human_format(num):
