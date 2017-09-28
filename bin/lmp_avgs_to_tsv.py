@@ -14,15 +14,18 @@ cols = []
 last_timestep = -1
 tsv = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
 
-for filename in args.filenames:
-    with open(filename, 'r') as f:
-        _ = next(f)
-        cols1 = next(f)[2:].strip().split()
-        if not cols:
-            cols = cols1
-            tsv.writerow(cols)
-        elif cols != cols1:
-            raise Exception("columns of filename %s do not match prior files: %s != %s" % (filename, cols, cols1))
+try:
+    for filename in args.filenames:
+        with open(filename, 'r') as f:
+            _ = next(f)
+            cols1 = next(f)[2:].strip().split()
+            if not cols:
+                cols = cols1
+                tsv.writerow(cols)
+            elif cols != cols1:
+                raise Exception("columns of filename %s do not match prior files: %s != %s" % (filename, cols, cols1))
 
-        for line in f:
-            tsv.writerow(line.strip().split())
+            for line in f:
+                tsv.writerow(line.strip().split())
+except BrokenPipeError:
+    print("Broken Pipe. Stdout likely closed by program output is piped to.")
