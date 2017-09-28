@@ -17,6 +17,7 @@ setup(
             'bin/lmp_chunks_to_tsv.py',
             'bin/tsv_plot_chunks.py',
             'bin/tsv_eq_trends.py',
+            'bin/tsv_stats.py',
             'bin/tsv_plot_cols_vs_time.py',
             'bin/tsv_plot_stacked_bar.py'
     ]
