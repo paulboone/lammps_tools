@@ -8,7 +8,7 @@ import sys
 import numpy as np
 from tabulate import tabulate
 
-from utils import thermo_from_lammps_log, human_format
+from lammps_tools.utils import thermo_from_lammps_log, human_format
 
 parser = argparse.ArgumentParser("./eq_trends.py")
 parser.add_argument("--startdata", "-s", default=0, help="start at row. Defaults to 0.")

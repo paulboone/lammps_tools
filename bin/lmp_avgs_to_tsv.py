@@ -4,7 +4,7 @@ import argparse
 import csv
 import sys
 
-from utils import thermo_from_lammps_log
+from lammps_tools.utils import thermo_from_lammps_log
 
 parser = argparse.ArgumentParser("./lmp_log_to_tsv.py")
 parser.add_argument('filenames', nargs='+', help="Path(s) to LAMMPS average output file(s)")

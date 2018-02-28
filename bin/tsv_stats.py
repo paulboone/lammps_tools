@@ -8,7 +8,7 @@ import sys
 import numpy as np
 from tabulate import tabulate
 
-from utils import thermo_from_lammps_log, human_format
+from lammps_tools.utils import thermo_from_lammps_log, human_format
 
 parser = argparse.ArgumentParser("./eq_trends.py")
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)

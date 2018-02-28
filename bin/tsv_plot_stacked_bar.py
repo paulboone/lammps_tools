@@ -8,7 +8,7 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-from utils import human_format
+from lammps_tools.utils import human_format
 
 parser = argparse.ArgumentParser("./lmp_plot_vs_time.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)

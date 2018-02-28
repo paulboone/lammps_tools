@@ -4,7 +4,7 @@ import argparse
 import csv
 import sys
 
-from utils import data_from_lammps_data
+from lammps_tools.utils import data_from_lammps_data
 
 parser = argparse.ArgumentParser("./lmp_data_to_tsv.py")
 parser.add_argument('filenames', nargs='+', help="Path(s) to LAMMPS log output file(s)")
