@@ -97,7 +97,8 @@ x_chunks = np.array(range(0, num_chunks), dtype=float) * chunksize
 for plot_index in range(1, num_plots + 1):
     print("making plot # %s" % plot_index)
     ax = fig.add_subplot(num_plots, 1, plot_index)
-    ax.grid(linestyle='-', color='0.7', zorder=0)
+    ax.grid(linestyle='-', color='0.7', zorder=0, which="both")
+    ax.minorticks_on()
     ax.set_ylim(y_range)
     ax.set_xlim(np.array(x_range))
 
@@ -123,7 +124,7 @@ for plot_index in range(1, num_plots + 1):
     if args.show_fit:
         # add fit line to plot
         m, c = np.linalg.lstsq(np.vstack([x_chunks[0:-1], np.ones(len(x_chunks) - 1)]).T, averaged_plot_values[0:-1])[0]
-        legend += ["%.2fx + %.2f" % (m, c)]
+        legend += ["%.4fx + %.4f" % (m, c)]
 
         lin_fit_values = [m*x + c for x in x_chunks[0:-1]]
         ax.plot(x_chunks[0:-1] + 0.5 * chunksize, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
