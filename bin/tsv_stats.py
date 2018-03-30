@@ -54,5 +54,9 @@ for row in tsv:
 
 args.filename.close()
 
-print("std = ", np.std(cols, axis=1))
-print("avg = ", np.mean(cols, axis=1))
+std_results = np.std(cols, axis=1)
+avg_results = np.mean(cols, axis=1)
+print("std = ", std_results)
+print("avg = ", avg_results)
+
+print("\t".join(map(str,np.dstack((avg_results, std_results)).flatten())))
