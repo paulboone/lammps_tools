@@ -7,6 +7,7 @@ import sys
 
 from matplotlib import pyplot as plt
 import numpy as np
+from scipy import stats
 
 parser = argparse.ArgumentParser("./lmp_plot_vs_time.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
@@ -16,6 +17,7 @@ parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to aver
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
 parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
+parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
 args = parser.parse_args()
 
 avg_every = int(args.avg_every)
@@ -62,6 +64,7 @@ for plot_index in range(0, num_plots):
     col = int(args.columns[plot_index][0])
     ax = fig.add_subplot(num_plots, 1, plot_index + 1)
     ax.set_title("%s by timestep" % (args.columns[plot_index][1]))
+    legend = [args.columns[plot_index][1]]
     ax.grid(linestyle='-', color='0.7', zorder=0)
 
     values = values_by_rows[:, col]
@@ -74,7 +77,18 @@ for plot_index in range(0, num_plots):
     ax.set_ylim(y_range)
     ax.set_xlim(x_range)
 
+
+
     ax.plot(rows, values, 'b', zorder=3)
+
+    if args.show_fit:
+        # y = mx + c
+        m, c, r_value, p_value, std_err = stats.linregress(rows,values)
+        legend += ["%.4fx + %.4f (r^2 = %.4f)" % (m, c, r_value)]
+        lin_fit_values = [m*x + c for x in rows]
+        ax.plot(rows, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
+
+    ax.legend(legend)
 
 
 fig.savefig(args.output_file, dpi=144)
