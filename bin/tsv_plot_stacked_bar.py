@@ -12,6 +12,7 @@ from lammps_tools.utils import human_format
 
 parser = argparse.ArgumentParser("./lmp_plot_vs_time.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
+parser.add_argument("--output-file", "-o", default="tempout.stacked_bar.png", help="output file name")
 parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop rows. Defaults to plotting all rows.")
 parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to average before plotting.")
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
@@ -108,10 +109,4 @@ for plot_index in range(0, 1):
 
     ax.legend(col_names)
 
-
-if args.filename == sys.stdin:
-    fileout = "tempout"
-else:
-    fileout = args.filename.name
-
-fig.savefig(fileout + "cols.png", dpi=144)
+fig.savefig(args.output_file, dpi=144)

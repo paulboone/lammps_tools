@@ -14,6 +14,7 @@ from lammps_tools.utils import human_format
 
 parser = argparse.ArgumentParser("./lmp_plot_chunks.py") #help='Process LAMMPS chunks file and plot'
 parser.add_argument('filename', nargs="?", type=argparse.FileType('r'), default=sys.stdin)
+parser.add_argument("--output-file", "-o", default="tempout.chunks.png", help="output file name")
 parser.add_argument("--ylabel", "--yl", default="Unspecified Varname", help="variable measured in the LAMMPS file")
 parser.add_argument("--xlabel", "--xl", default="chunk", help="chunk dimension")
 parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop rows. Defaults to plotting all rows.")
@@ -136,10 +137,4 @@ for plot_index in range(1, num_plots + 1):
 
     ax.legend(legend)
 
-
-if args.filename == sys.stdin:
-    fileout = "tempout"
-else:
-    fileout = args.filename.name
-
-fig.savefig(fileout + ".chunks.png", dpi=144)
+fig.savefig(args.output_file, dpi=144)
