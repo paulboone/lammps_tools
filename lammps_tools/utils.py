@@ -17,14 +17,15 @@ def thermo_from_lammps_log(f, last_timestep=-1, verbose=False):
         else:
             if not line.startswith("Loop"):
                 raw_data = line.strip().split()
-
                 if raw_data[0] == last_timestep:
                     if verbose:
                         print("INFO: skipping first line of new file b/c timestep is the same.")
                 else:
+                    last_timestep = raw_data[0]
                     data.append(raw_data)
             else:
-                break
+
+                found_data = False
 
     if len(data) > 1 and len(data[-1]) < len(data[-2]):
         if verbose:
