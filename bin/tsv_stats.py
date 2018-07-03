@@ -56,7 +56,12 @@ args.filename.close()
 
 std_results = np.std(cols, axis=1)
 avg_results = np.mean(cols, axis=1)
+
 print("std = ", std_results)
 print("avg = ", avg_results)
+print("length = ", cols.shape[1])
+print("min = ", np.min(cols, axis=1))
+print("max = ", np.max(cols, axis=1))
+
 
 print("\t".join(map(str,np.dstack((avg_results, std_results)).flatten())))
