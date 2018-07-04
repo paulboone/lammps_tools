@@ -85,8 +85,8 @@ highest_error = None
 highest_error_pair = None
 for pair in lin_fit_pairs:
     # y = at + b
-    p1 = int(pair[0] * reduced_rows)
-    p2 = int(pair[1] * reduced_rows)
+    p1 = int(pair[0] * (reduced_rows - 1))
+    p2 = int(pair[1] * (reduced_rows - 1))
     slope, intercept, r_value, _, _ = stats.linregress(simple_t[p1:p2], all_results[p1:p2])
     poly = (slope, intercept)
     error = r_value ** 2
@@ -109,14 +109,14 @@ for r in fit_results:
     p, error, poly = r
     zorder = 2
     if p == highest_error_pair:
-        print("Best fit: (%.2f-%.2f; %.2E):" % (*p, error))
+        print("Best fit: (%.2f - %.2f ns; r^2 = %.3f):" % (simple_t[p[0]], simple_t[p[1]], error))
         print("D = %2.2f angstrom^2 / ns" % poly[0])
         print("D = %2.3E cm^2 / s" % (poly[0] * 1e-16/1e-9))
         print("D = %2.3E m^2 / s" % (poly[0] * 1e-20/1e-9))
         zorder = 20
 
     ax.plot(simple_t[p[0]:p[1]], np.polyval(poly, simple_t[p[0]:p[1]]), zorder=zorder,
-            label="(%.2f-%.2f; %0.3f) %2.0ft + %2.0f" % (*p, error, *poly))
+            label="(%.2f - %.2f ns; r^2 = %0.3f) %2.0ft + %2.0f" % (simple_t[p[0]], simple_t[p[1]], error, *poly))
 
 ax.legend()
 fig.savefig("msd_fft_all_plot.png", dpi=288)
