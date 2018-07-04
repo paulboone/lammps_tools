@@ -36,9 +36,9 @@ parser.add_argument('filename', help="Path to numpy array: should be a 3d array 
 parser.add_argument("--output-molecule-plots", action='store_true', help="output plot per molecule")
 parser.add_argument("--fs-per-row", default=10, type=int, help="femtoseconds per row. Defaults to 10.")
 parser.add_argument("--average-rows", default=1,  type=int, help="# of rows to average together to get a dataset of reasonable size (typically about 1000 points for graphing)")
+parser.add_argument("--max-molecules", default=0,  type=int, help="maximum number of molecules to process. Useful for debugging")
 
-
-# args = parser.parse_args(["./lammpstrj.npy", "--average-rows", "4000", "--output-molecule-plots"])
+# args = parser.parse_args(["./edusif/lammpstrj.npy", "--average-rows", "4000", "--output-molecule-plots", "--max-molecules", "1"])
 args = parser.parse_args()
 
 ### load data and truncate to multiple of args.average_rows
@@ -47,6 +47,9 @@ num_rows, num_molecules, num_cols = data.shape
 reduced_rows = num_rows // args.average_rows
 num_rows = reduced_rows * args.average_rows
 data = data[0:num_rows, :, :]
+if args.max_molecules > 0:
+    data = data[:, 0:args.max_molecules, :]
+    num_molecules = args.max_molecules
 
 # take row index for all rows, average args.average_rows number of them together, and convert to ns
 simple_t = np.mean(np.arange(0,num_rows).reshape(-1, args.average_rows), axis=1) * args.fs_per_row / 1e6
