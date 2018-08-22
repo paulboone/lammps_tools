@@ -7,8 +7,9 @@ import sys
 
 from matplotlib import pyplot as plt
 from matplotlib.figure import figaspect
-
 import numpy as np
+from scipy import stats
+
 
 from lammps_tools.utils import human_format
 
@@ -22,7 +23,7 @@ parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to aver
 parser.add_argument("--plot-every", "-p", default=None, help="Number of rows per plot. Must be a multiple of avg-every, if that is used.")
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
-parser.add_argument("--show-fit", action='store_true', help="calculate linear fit and show equation")
+parser.add_argument("--fit", nargs=2, type=int, action='append', default=[], metavar=('x_start', 'x_end'), help="calculate linear fit from from <x_start> to <x_end> and show equation")
 parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
 parser.add_argument("--chunksize", "--cs", default=1.0, help="Chunk size")
 args = parser.parse_args()
@@ -121,13 +122,14 @@ for plot_index in range(1, num_plots + 1):
     ax.plot(x_chunks[0:-1] + 0.5 * chunksize, averaged_plot_values[0:-1], '#FFD700', alpha=1.0, lw=2, zorder=4)
     legend = ['overall average']
 
-    if args.show_fit:
+    for p1, p2 in args.fit:
         # add fit line to plot
-        m, c = np.linalg.lstsq(np.vstack([x_chunks[0:-1], np.ones(len(x_chunks) - 1)]).T, averaged_plot_values[0:-1])[0]
-        legend += ["%.4fx + %.4f" % (m, c)]
-
-        lin_fit_values = [m*x + c for x in x_chunks[0:-1]]
-        ax.plot(x_chunks[0:-1] + 0.5 * chunksize, lin_fit_values, '#FF7F50', alpha=1.0, lw=2, zorder=5)
+        p1 = int(p1 / chunksize)
+        p2 = int(p2 / chunksize)
+        x_chunks_p1_p2 = x_chunks[p1:p2] + 0.5 * chunksize
+        slope, intercept, r_value, _, _ = stats.linregress(x_chunks_p1_p2, averaged_plot_values[p1:p2])
+        legend += ["%.4fx + %.4f [r^2 = %.3f]" % (slope, intercept, r_value)]
+        ax.plot(x_chunks_p1_p2, np.polyval((slope, intercept), x_chunks_p1_p2), zorder=100)
 
     for row in plot_rows:
         ax.plot(np.array(x_chunks), row, '#4682B4', alpha=0.5, lw=0.5, zorder=3, drawstyle='steps-post')
