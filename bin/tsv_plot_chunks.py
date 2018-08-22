@@ -6,6 +6,7 @@ from math import ceil
 import sys
 
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from matplotlib.figure import figaspect
 import numpy as np
 from scipy import stats
@@ -23,7 +24,7 @@ parser.add_argument("--avg-every", "-a", default=1, help="Number of rows to aver
 parser.add_argument("--plot-every", "-p", default=None, help="Number of rows per plot. Must be a multiple of avg-every, if that is used.")
 parser.add_argument("--yrange", "--yr", nargs=2, default=None, help="Y Range. Defaults to total range of entire dataset.")
 parser.add_argument("--xrange", "--xr", nargs=2, default=None, help="X Range. Defaults to num of chunks in LAMMPS file.")
-parser.add_argument("--fit", nargs=2, type=int, action='append', default=[], metavar=('x_start', 'x_end'), help="calculate linear fit from from <x_start> to <x_end> and show equation")
+parser.add_argument("--fit", nargs=2, type=float, action='append', default=[], metavar=('x_start', 'x_end'), help="calculate linear fit from from <x_start> to <x_end> and show equation")
 parser.add_argument("--vspan","-v", nargs=3, action='append', default=[], metavar=('x_start', 'x_end', 'color'), help="draw box from <x_start> to <x_end> with <color>")
 parser.add_argument("--chunksize", "--cs", default=1.0, help="Chunk size")
 args = parser.parse_args()
@@ -49,6 +50,7 @@ else:
 
 #### limit rows and average, if necessary
 num_chunks = len(values_by_rows[0,:])
+print(num_chunks)
 avg_every = int(args.avg_every)
 chunksize = float(args.chunksize)
 
@@ -94,12 +96,15 @@ w, h = figaspect(0.5)
 fig = plt.figure(figsize=(w,(h+1)*num_plots))
 x_range = np.array([0, num_chunks-1], dtype=float) * chunksize
 x_chunks = np.array(range(0, num_chunks), dtype=float) * chunksize
+x_ticks = np.array(range(0, int(num_chunks / 4) + 1), dtype=float) * chunksize * 4
 
 for plot_index in range(1, num_plots + 1):
     print("making plot # %s" % plot_index)
     ax = fig.add_subplot(num_plots, 1, plot_index)
     ax.grid(linestyle='-', color='0.7', zorder=0, which="both")
     ax.minorticks_on()
+    ax.set_xticks(x_ticks)
+    ax.xaxis.set_minor_locator(MultipleLocator(chunksize))
     ax.set_ylim(y_range)
     ax.set_xlim(np.array(x_range))
 
@@ -124,8 +129,8 @@ for plot_index in range(1, num_plots + 1):
 
     for p1, p2 in args.fit:
         # add fit line to plot
-        p1 = int(p1 / chunksize)
-        p2 = int(p2 / chunksize)
+        p1 = round(p1 / chunksize)
+        p2 = round(p2 / chunksize)
         x_chunks_p1_p2 = x_chunks[p1:p2] + 0.5 * chunksize
         slope, intercept, r_value, _, _ = stats.linregress(x_chunks_p1_p2, averaged_plot_values[p1:p2])
         legend += ["%.4fx + %.4f [r^2 = %.3f]" % (slope, intercept, r_value)]
