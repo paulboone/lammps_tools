@@ -16,9 +16,8 @@ parser.add_argument("--rows", "-r", nargs=2, default=None, help="Start and stop 
 parser.add_argument("--columns", "-c", nargs=2, action='append', metavar=('idx', 'label'), help="<column #> <label>")
 args = parser.parse_args()
 
-
-columns = [(int(col_index) - 1, col_label) for col_index, col_label in args.columns]
-
+columns = [int(col_index) - 1 for col_index, _ in args.columns]
+column_labels = [col_label for _, col_label in args.columns]
 if args.rows:
     row_start = int(args.rows[0])
     row_stop = int(args.rows[1])
@@ -26,36 +25,10 @@ else:
     row_start = 0
     row_stop = len(rows)
 
+cols = np.loadtxt(args.filename, skiprows=2, usecols=columns, dtype=float)
 
-tsv = csv.reader(args.filename, delimiter="\t")
-c1 = next(tsv)
-c1 = next(tsv)
-
-cols = np.ndarray(shape=(len(columns), row_stop - row_start), dtype=float)
-
-for _ in range(0,row_start):
-    next(tsv)
-
-i = 0
-for row in tsv:
-    if i >= row_stop - row_start:
-        print("stopping at row %i" % i)
-        break
-    if i >= cols.shape[1]:
-        print("more rows than preallocated data structure. Please change --rows param")
-        break
-
-    for n, (col_index, col_label) in enumerate(columns):
-        cols[n,i] = float(row[col_index])
-
-    i += 1
-    if i % 1000000 == 0:
-        print(i)
-
-args.filename.close()
-
-std_results = np.std(cols, axis=1)
-avg_results = np.mean(cols, axis=1)
+std_results = np.std(cols, axis=0)
+avg_results = np.mean(cols, axis=0)
 
 print("std = ", std_results)
 print("avg = ", avg_results)
@@ -63,5 +36,5 @@ print("length = ", cols.shape[1])
 print("min = ", np.min(cols, axis=1))
 print("max = ", np.max(cols, axis=1))
 
-
+print("\t".join(["%s (avg)\t%s (std)" % (l, l) for l in column_labels]))
 print("\t".join(map(str,np.dstack((avg_results, std_results)).flatten())))
