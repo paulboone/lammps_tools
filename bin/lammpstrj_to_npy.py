@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import gzip
 
 import numpy as np
 
@@ -8,7 +9,7 @@ parser = argparse.ArgumentParser("./lammpstrj_to_npy.py")
 parser.add_argument('input_filename', help="Path to LAMMPS trajectory file array")
 parser.add_argument("--output-filename", "-f", default='lammpstrj.npy', help="Path to save numpy array to")
 parser.add_argument("--atoms-per-molecule", default=3, type=int, help="Number of atoms per molecule.")
-
+parser.add_argument("--start-molecule-index", default=1, type=int, help="index of first molecule to track.")
 args = parser.parse_args()
 # args = parser.parse_args(["./gas_small.lammpstrj"])
 
@@ -16,16 +17,19 @@ num_cols = 3 # x, y, z (for COM)
 data = []
 row_num = 0
 
-with open(args.input_filename, 'r') as f:
+with gzip.open(args.input_filename, 'r') as f:
     while True:
         try:
             _ = next(f) # timestep label
         except StopIteration:
             finished = True
             break
+        except EOFError:
+            print("Surprise end of file! Possibly this gzip was saved without being closed properly")
+            break
 
         timestep = int(next(f))
-        if row_num % 10000 == 0:
+        if row_num % 1000 == 0:
             print("row %d: timestep %d" % (row_num, timestep))
 
         _ = next(f) # number of atoms
@@ -44,7 +48,7 @@ with open(args.input_filename, 'r') as f:
         timestep_data = np.zeros((num_molecules,3))
         for a in range(num_atoms):
             cols = next(f).strip().split()
-            mol_index = int(cols[2]) - 1 # LAMMPS molecules are indexed starting from 1
+            mol_index = int(cols[2]) - args.start_molecule_index
 
             mass = float(cols[3])
             x = float(cols[4])
