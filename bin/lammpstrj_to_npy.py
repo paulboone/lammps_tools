@@ -59,17 +59,19 @@ while True:
         y = float(cols[5])
         z = float(cols[6])
 
+        # mass is added here so COM is calculated when divided by total mass
         masses[mol_index] += mass
         timestep_data[mol_index, 0] += x * mass
         timestep_data[mol_index, 1] += y * mass
         timestep_data[mol_index, 2] += z * mass
 
-    # divide x,y,z by total mass
-    timestep_data /= np.broadcast_to(masses, (args.atoms_per_molecule, num_molecules)).transpose()
+    # divide x,y,z by total mass, giving COM
+    timestep_data /= np.repeat(masses, 3).reshape(timestep_data.shape)
     data.append(timestep_data)
     row_num += 1
 
 f.close()
+
 print("finished at row # %d" % row_num)
 
 np_data = np.array(data)
