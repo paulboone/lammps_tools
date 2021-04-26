@@ -17,54 +17,59 @@ num_cols = 3 # x, y, z (for COM)
 data = []
 row_num = 0
 
-with gzip.open(args.input_filename, 'r') as f:
-    while True:
-        try:
-            _ = next(f) # timestep label
-        except StopIteration:
-            finished = True
-            break
-        except EOFError:
-            print("Surprise end of file! Possibly this gzip was saved without being closed properly")
-            break
+if args.input_filename.endswith(".gz"):
+    f = gzip.open(args.input_filename, 'r')
+else:
+    f = open(args.input_filename, 'r')
 
-        timestep = int(next(f))
-        if row_num % 1000 == 0:
-            print("row %d: timestep %d" % (row_num, timestep))
+while True:
+    try:
+        _ = next(f) # timestep label
+    except StopIteration:
+        finished = True
+        break
+    except EOFError:
+        print("Surprise end of file! Possibly this gzip was saved without being closed properly")
+        break
 
-        _ = next(f) # number of atoms
-        num_atoms = int(next(f))
-        num_molecules = num_atoms // args.atoms_per_molecule
+    timestep = int(next(f))
+    if row_num % 1000 == 0:
+        print("row %d: timestep %d" % (row_num, timestep))
 
-        _ = next(f) # box bounds
-        _ = next(f) # box bounds x
-        _ = next(f) # box bounds y
-        _ = next(f) # box bounds z
+    _ = next(f) # number of atoms
+    num_atoms = int(next(f))
+    num_molecules = num_atoms // args.atoms_per_molecule
 
-        _ = next(f) # atoms
+    _ = next(f) # box bounds
+    _ = next(f) # box bounds x
+    _ = next(f) # box bounds y
+    _ = next(f) # box bounds z
+
+    _ = next(f) # atoms
 
 
-        masses = np.zeros(num_molecules)
-        timestep_data = np.zeros((num_molecules,3))
-        for a in range(num_atoms):
-            cols = next(f).strip().split()
-            mol_index = int(cols[2]) - args.start_molecule_index
+    masses = np.zeros(num_molecules)
+    timestep_data = np.zeros((num_molecules,3))
+    for a in range(num_atoms):
+        cols = next(f).strip().split()
+        mol_index = int(cols[2]) - args.start_molecule_index
 
-            mass = float(cols[3])
-            x = float(cols[4])
-            y = float(cols[5])
-            z = float(cols[6])
+        mass = float(cols[3])
+        x = float(cols[4])
+        y = float(cols[5])
+        z = float(cols[6])
 
-            masses[mol_index] += mass
-            timestep_data[mol_index, 0] += x * mass
-            timestep_data[mol_index, 1] += y * mass
-            timestep_data[mol_index, 2] += z * mass
+        masses[mol_index] += mass
+        timestep_data[mol_index, 0] += x * mass
+        timestep_data[mol_index, 1] += y * mass
+        timestep_data[mol_index, 2] += z * mass
 
-        # divide x,y,z by total mass
-        timestep_data /= np.broadcast_to(masses, (args.atoms_per_molecule, num_molecules)).transpose()
-        data.append(timestep_data)
-        row_num += 1
+    # divide x,y,z by total mass
+    timestep_data /= np.broadcast_to(masses, (args.atoms_per_molecule, num_molecules)).transpose()
+    data.append(timestep_data)
+    row_num += 1
 
+f.close()
 print("finished at row # %d" % row_num)
 
 np_data = np.array(data)
