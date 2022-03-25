@@ -4,23 +4,20 @@ import argparse
 import csv
 import sys
 
+import click
+
 from lammps_tools.utils import thermo_from_lammps_log
 
-parser = argparse.ArgumentParser("./lmp_log_to_tsv.py")
-parser.add_argument('filenames', nargs='+', help="Path(s) to LAMMPS log output file(s)")
-args = parser.parse_args()
 
-cols = []
-last_timestep = -1
-tsv = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
-for filename in args.filenames:
-    with open(filename, 'r') as f:
-        cols1, data1 = thermo_from_lammps_log(f, last_timestep=last_timestep)
-        last_timestep = data1[-1][0]
-        if not cols:
-            cols = cols1
-            tsv.writerow(cols)
-        elif cols != cols1:
-            raise Exception("columns of filename %s do not match prior files: %s != %s" % (filename, cols, cols1))
+@click.command()
+@click.argument('lammps_log_path', type=click.Path())
+@click.option('--thermo-index', '-i', type=int, default=1)
+def lmp_log_to_tsv(lammps_log_path, thermo_index=1):
+    tsv = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
+    with open(lammps_log_path, 'r') as f:
+        cols, data = thermo_from_lammps_log(f)
+        tsv.writerow(cols[thermo_index - 1])
+        tsv.writerows(data[thermo_index - 1])
 
-        tsv.writerows(data1)
+if __name__ == '__main__':
+    lmp_log_to_tsv()

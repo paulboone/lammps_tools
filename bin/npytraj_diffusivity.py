@@ -63,7 +63,6 @@ for m in range(num_molecules):
     results = msd_fft(d0, num_rows)
     simple_results[m,:] = np.mean(results.reshape(-1, args.average_rows), axis=1)
 
-simple_results /= 6
 all_results = np.mean(simple_results, axis=0)
 
 if args.output_molecule_plots:
@@ -72,30 +71,34 @@ if args.output_molecule_plots:
     ax.set_xlabel('tau [ns]')
     ax.set_ylabel('MSD [Ang^2]')
     ax.grid(linestyle='-', color='0.7', zorder=0)
+    # ax.set_yscale('log')
+    # ax.set_xscale('log')
     ax.plot(simple_t, simple_results.transpose(), zorder=2)
     fig.savefig("msd_fft_molecule_plots.png", dpi=288)
 
+
+
 # attempt fits across different ranges
 # generally for all fits, first 10% and last 50% are thrown away
-# different ranges from 0.1-0.5 are tried, and fit with lowest error is selected as the
+# different ranges from 0.1-0.5 are tried, and fit with lowest r2 is selected as the
 # "correct" fit and reported as the diffusivity
 lin_fit_pairs = [(0.0,1.0), (0.10,0.50), (0.10,0.45), (0.10,0.40), (0.10,0.35), (0.30,0.50), (0.25,0.50), (0.20,0.50), (0.15,0.50), (0.20,0.40), (0.15,0.40), (0.20, 0.45)]
 fit_results = []
-highest_error = None
-highest_error_pair = None
+highest_r2 = None
+highest_r2_pair = None
 for pair in lin_fit_pairs:
     # y = at + b
     p1 = int(pair[0] * (reduced_rows - 1))
     p2 = int(pair[1] * (reduced_rows - 1))
     slope, intercept, r_value, _, _ = stats.linregress(simple_t[p1:p2], all_results[p1:p2])
     poly = (slope, intercept)
-    error = r_value ** 2
+    r2 = r_value ** 2
 
     # pick best fit
-    if not highest_error or error > highest_error:
-        highest_error = error
-        highest_error_pair = (p1,p2)
-    fit_results.append([(p1,p2), error, poly])
+    if not highest_r2 or r2 > highest_r2:
+        highest_r2 = r2
+        highest_r2_pair = (p1,p2)
+    fit_results.append([(p1,p2), r2, poly])
 
 # plot combined data and fits
 fig = plt.figure(figsize=(7,7))
@@ -106,17 +109,23 @@ ax.grid(linestyle='-', color='0.7', zorder=0)
 ax.plot(simple_t, all_results, zorder=10)
 
 for r in fit_results:
-    p, error, poly = r
+    p, r2, poly = r
     zorder = 2
-    if p == highest_error_pair:
-        print("Best fit: (%.2f - %.2f ns; r^2 = %.3f):" % (simple_t[p[0]], simple_t[p[1]], error))
-        print("D = %2.2f angstrom^2 / ns" % poly[0])
-        print("D = %2.3E cm^2 / s" % (poly[0] * 1e-16/1e-9))
-        print("D = %2.3E m^2 / s" % (poly[0] * 1e-20/1e-9))
+    if p == highest_r2_pair:
+        total_time = simple_t[-1] * 1e6
+        print("Total Time: %f" % total_time)
+        msd = all_results[-1]
+        print("Best fit: (%.2f - %.2f ns; r^2 = %.3f):" % (simple_t[p[0]], simple_t[p[1]], r2))
+        print("MSD = %4e angstrom^2" % msd)
+        print("D (MSD / t) = %4e angstrom^2 / fs" % (msd / (6 * total_time)))
+        print("D (fit) = %4e angstrom^2 / fs" % (poly[0] / (6 * 1e6)))
+        # print("D = %2.3E cm^2 / s" % (poly[0] * 1e-16/1e-9))
+        # print("D = %2.3E m^2 / s" % (poly[0] * 1e-20/1e-9))
         zorder = 20
 
+
     ax.plot(simple_t[p[0]:p[1]], np.polyval(poly, simple_t[p[0]:p[1]]), zorder=zorder,
-            label="(%.2f - %.2f ns; r^2 = %0.3f) %2.0ft + %2.0f" % (simple_t[p[0]], simple_t[p[1]], error, *poly))
+            label="%.1f-%.1fns r2=%0.3f: %2.0ft%+2.0f" % (simple_t[p[0]], simple_t[p[1]], r2, *poly))
 
 ax.legend()
 fig.savefig("msd_fft_all_plot.png", dpi=288)
